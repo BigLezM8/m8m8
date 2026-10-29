@@ -1638,7 +1638,7 @@ function slam(u,dmg){
   for(const o of G.obs){ if(o.hp&&!o.dead&&Math.hypot(o.x-u.x,o.y-u.y)<rad+o.rad) damageObs(o,dmg); }
   if(TYPES[u.type].titan) titanSlam(u);
 }
-function launch(u,power){ if(u.structure||u.r>24||u.hidden) return; u.vz=Math.max(u.vz,power); u.z=Math.max(u.z,1); u.spin=(Math.random()<.5?-1:1)*rr(9,15); if(Math.random()<0.4) speak(u,'launch',1,true); }
+function launch(u,power){ if(u.structure||u.r>24||u.hidden) return; u.forcedT=G.t+0.8; u.vz=Math.max(u.vz,power); u.z=Math.max(u.z,1); u.spin=(Math.random()<.5?-1:1)*rr(9,15); if(Math.random()<0.4) speak(u,'launch',1,true); }
 function explode(x,y,rad,dmg,team,owner,small){
   if(!isFinite(x)||!isFinite(y)) return;
   if(G.mines.length) gasNear(x,y,rad);
@@ -2258,6 +2258,7 @@ function updMines(dt){
 
 /* ================= SIMULATION ================= */
 function integrate(u,dt){
+  if(u.ctrl>=0&&!u.structure&&(u.vx-u.dvx)**2+(u.vy-u.dvy)**2>(u.speed+170)**2) u.forcedT=G.t+0.35;   // something shoved it
   u.cd-=dt; u.stun-=dt; u.flash-=dt; u.inv-=dt; u.haste-=dt; u.slow-=dt; u.hurtT-=dt; u.regenT-=dt; u.dance-=dt;
   if(u.stk>0){ u.stkT-=dt; if(u.stkT<=0){ u.stk=0; } }
   if(u.giant>0){ u.giant-=dt; if(u.giant<=0) recalc(u,false); }
@@ -4847,7 +4848,7 @@ function encodeSnap(withEvents=true,maxBul=40){
   const h=g.haz; parts.push(h?(HAZ_CH[h.kind]+e2((h.x+400)/3)+e2((h.y+400)/2)+e1(h.r/3)+e1(h.warn>0?1:0)+e1(h.vx>0?1:0)+e2((h.lane||0)/2)+e1(h.vy>0?1:0)):'');
   let ds=''; for(const o of g.obs) if(o.dead) ds+=e2(o.idx); parts.push(ds);
   parts.push(g.players.map(p=>{ if(!p) return ''; const c=unitById(p.ctrl);
-    return e1(p.team)+e3(p.ctrl||0)+e3(p.heroId||0)+e1(p.respawn*2)+e1(ORDERS.indexOf(p.order))+e1(p.out?1:0)+e2(p.kills)+e2(c?(c.ammo===Infinity?1295:c.ammo):1295)+e1(c?c.armor/5:0)+e1((p.abT||0)*2); }).join(','));
+    return e1(p.team)+e3(p.ctrl||0)+e3(p.heroId||0)+e1(p.respawn*2)+e1(ORDERS.indexOf(p.order))+e1(p.out?1:0)+e2(p.kills)+e2(c?(c.ammo===Infinity?1295:c.ammo):1295)+e1(c?c.armor/5:0)+e1((p.abT||0)*2)+e1(p.auth?1:0); }).join(','));
   parts.push(withEvents?g.events.filter(e=>e.t>g.t-0.8).slice(-30).map(e=>e.s).join('~'):'');
   let dy=''; for(const o of g.obs) if(o.dyn&&!o.dead) dy+=e2(o.x/2)+e2(o.y/2)+e1(o.life*4); parts.push(dy);
   parts.push(encodeGold());
@@ -4922,7 +4923,7 @@ function applySnap(s){
   } else g.haz=null;
   const ds=P2[9]; for(const o of g.obs) o.dead=false; for(let i=0;i+2<=ds.length;i+=2){ const o=g.obs[dN(ds,i,2)]; if(o) o.dead=true; }
   P2[10].split(',').forEach((x,slot)=>{ const p=g.players[slot]; if(!p||!x) return;
-    p.team=dN(x,0,1); p.ctrl=dN(x,1,3)||null; p.heroId=dN(x,4,3)||null; p.respawn=dN(x,7,1)/2; p.order=ORDERS[dN(x,8,1)]||'follow'; p.out=!!dN(x,9,1); p.kills=dN(x,10,2); p.ammo=dN(x,12,2); p.armor=dN(x,14,1)*5; p.abT=dN(x,15,1)/2; });
+    p.team=dN(x,0,1); p.ctrl=dN(x,1,3)||null; p.heroId=dN(x,4,3)||null; p.respawn=dN(x,7,1)/2; p.order=ORDERS[dN(x,8,1)]||'follow'; p.out=!!dN(x,9,1); p.kills=dN(x,10,2); p.ammo=dN(x,12,2); p.armor=dN(x,14,1)*5; p.abT=dN(x,15,1)/2; p.auth=dN(x,16,1); });
   try{ decodeGold(P2[13]||''); }catch(e){}
   { const dy=P2[12]||''; g.obs=g.obs.filter(o=>!o.dyn); for(let i=0;i+5<=dy.length;i+=5) g.obs.push({kind:'icepillar',shape:'c',r:11,rad:11,x:dN(dy,i,2)*2,y:dN(dy,i+2,2)*2,life:dN(dy,i+4,1)/4,dyn:true,idx:-1,hp:110,maxhp:110,flash:0}); }
   const evs=P2[11]?P2[11].split('~'):[];
@@ -4938,18 +4939,32 @@ function clientMuzzle(u){
   if(w.kind!=='f') part({x:u.x+Math.cos(a)*(u.r+16),y:u.y+Math.sin(a)*(u.r+16),z:u.r+6,life:.06,size:w.kind==='r'?14:9,col:w.kind==='z'?'#9FE3FF':'#FFE58A',type:'flash'});
   sfxPlay(weaponSfx(u)||w.kind,u.x,u.y,u.sp);
 }
+/* which of my own units I steer locally (walkers and normal vehicles; hoppers, diggers and anything being shoved follow the host) */
+function predictable(u){ return u&&!u.dead&&(!u.hidden||u.bur)&&!(u.z>4)&&!(u.bub>0)&&!(u.dance>0)&&u.type!=='toad'&&u.type!=='mole'&&!(u.bur>0&&u.type==='mole'); }
+/* host: take each remote player's own position when nothing is pushing them about */
+function applyClientPos(){
+  for(const p of G.players){ if(!p||p.slot===G.mySlot||!p.cpos) continue; const u=unitById(p.ctrl); p.auth=0;
+    if(!u||u.dead||u.id!==p.cpos.id||G.t-p.cpos.t>0.4) continue;
+    if(u._hx!=null&&Math.hypot(u.x-u._hx,u.y-u._hy)>60) u.forcedT=G.t+0.4;            // teleported (chute, swap, spat out)
+    const forced=(u.forcedT||0)>G.t||u.stun>0||u.z>4||u.bub>0||u.dance>0||u.frz>0||!predictable(u);
+    if(!forced&&Math.hypot(p.cpos.x-u.x,p.cpos.y-u.y)<160){ u.x=p.cpos.x; u.y=p.cpos.y; if(!TYPES[u.type].fly&&!TYPES[u.type].stilts) collideObs(u,u.r); p.auth=1; }
+    u._hx=u.x; u._hy=u.y; }
+}
 function clientStep(dt){
   const g=G; g.t+=dt;
   const me=g.player;
   for(const u of g.units){
     if(u===me&&(!u.hidden||u.bur)&&!g.ended&&!(u.z>4)&&!u.bub&&!u.dance){
       let mx=inp.mx,my=inp.my; const m=Math.hypot(mx,my); if(m>1){mx/=m;my/=m;}
-      let sp=TYPES[u.type].speed*(u.giant?0.9:1)*(u.bur?1.55:1); if(u.carry) sp*=0.82; const zn=zoneAt(u.x,u.y); if(zn==='mud') sp*=0.68; else if(zn==='water') sp*=0.6;
-      if(u.stun>0) sp=0;
+      const T=TYPES[u.type], F=FACTIONS[u.sp], pl=g.players[g.mySlot];
+      let sp=T.speed*(T.ride||T.structure||!F?1:F.spd)*(1+0.15*((RUN.perks||{}).zoom||0))*(u.giant?0.9:1)*(u.bur?1.55:1); if(u.carry&&!(RUN.perks||{}).mule) sp*=0.82; if(u.goldOn) sp*=0.5; if(u.slow) sp*=0.55;
+      const zn=u.r<24?zoneAt(u.x,u.y):null; if(zn==='mud') sp*=0.68; else if(zn==='water') sp*=0.6;
+      if(u.stun>0||u.frz>0) sp=0;
       const px=u.x, py=u.y;
-      u.x+=mx*sp*dt; u.y+=my*sp*dt; collideObs(u,u.r);
-      const ex=u.tx+mx*sp*0.12-u.x, ey=u.ty+my*sp*0.12-u.y, e=Math.hypot(ex,ey);
-      if(e>140){ u.x=u.tx; u.y=u.ty; } else if(e>10){ u.x+=ex*Math.min(1,dt*2.5); u.y+=ey*Math.min(1,dt*2.5); }
+      u.x+=mx*sp*dt; u.y+=my*sp*dt; if(!T.fly&&!T.stilts&&!T.ghost) collideObs(u,u.r); u.x=clamp(u.x,40,WW-40); u.y=clamp(u.y,40,WH-40);
+      /* the host is following me: only step in if we've drifted far apart. If the host has taken over (I got shoved), follow it closely */
+      const ex=u.tx-u.x, ey=u.ty-u.y, e=Math.hypot(ex,ey), auth=pl&&pl.auth;
+      if(e>(auth?220:140)){ u.x=u.tx; u.y=u.ty; } else if(!auth&&e>4){ u.x+=ex*Math.min(1,dt*9); u.y+=ey*Math.min(1,dt*9); }
       u.vx=(u.x-px)/dt; u.vy=(u.y-py)/dt;
       u.aim=localAim(u);
     } else {
@@ -5153,6 +5168,7 @@ function hostTick(dt){
     if(p.isMe) continue;
     const slot=NET.slots[p.peer]; const pl=G.players[slot]; if(slot==null||!pl) continue;
     const I=p.presence&&p.presence.i; if(!I) continue;
+    if(I.p) pl.cpos={x:I.p[0],y:I.p[1],id:I.p[2],t:G.t};
     pl.inp={mx:(I.m?I.m[0]:0)/100,my:(I.m?I.m[1]:0)/100,aim:(I.a||0)/100,dist:I.d||0,fire:!!I.f,aiming:!!I.s,assist:!!I.x};
     const c=I.c||[0,0,0,0,0,0];
     if(pl.cnt){ const names=ACTS; for(let k=0;k<names.length;k++){ if((c[k]||0)>(pl.cnt[k]||0)) pl.acts[names[k]]=true; } }
@@ -5167,7 +5183,8 @@ function clientTick(dt){
   NET.inT-=dt; if(NET.inT>0) return; NET.inT=1/30;
   const u=G&&G.player;
   const aim=u?u.aim:Math.atan2(inp.ay||0,inp.ax||1);
-  const I={m:[Math.round(clamp(inp.mx,-1,1)*100),Math.round(clamp(inp.my,-1,1)*100)],a:Math.round(aim*100),d:Math.round(u&&u.aimDist||0),f:inp.fire?1:0,s:(inp.mode==='kb'&&mouse.moved)||inp.aimMag>0?1:0,x:inp.mode!=='kb'?1:0,c:NET.cnt.slice(),w:NET.wreq||null};
+  const pu=G&&G.player, own=pu&&!pu.dead&&predictable(pu)?[Math.round(pu.x),Math.round(pu.y),pu.id]:null;
+  const I={p:own,m:[Math.round(clamp(inp.mx,-1,1)*100),Math.round(clamp(inp.my,-1,1)*100)],a:Math.round(aim*100),d:Math.round(u&&u.aimDist||0),f:inp.fire?1:0,s:(inp.mode==='kb'&&mouse.moved)||inp.aimMag>0?1:0,x:inp.mode!=='kb'?1:0,c:NET.cnt.slice(),w:NET.wreq||null};
   NET.game.presence({i:I}).catch(()=>{});
   const host=NET.game.peers().find(p=>p.presence&&p.presence.host===1&&!p.isMe);
   if(!host&&Date.now()-NET.hostSeen>5000) clientLostHost();
@@ -5829,6 +5846,7 @@ function frame(now){
         if(G.net==='client'){ clientStep(realDt); clientTick(realDt); }
         else {
           applyLocalInput();
+          if(G.net==='host') applyClientPos();
           let ts=1;
           if(G.slow>0){ G.slow-=realDt; ts=0.22; }
           if(G.hitstop>0){ G.hitstop-=realDt; ts=0.05; }
