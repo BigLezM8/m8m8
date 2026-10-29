@@ -358,7 +358,7 @@ button.perk:hover{background:#fff;transform:translateY(-3px);box-shadow:0 8px 0 
 </div>
 <div id="screen"></div>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script>window.M8_SITE=1;</script>
+<script>window.M8_SITE=1;window.M8_ASSET_BASES=["assets/","upload-1/assets/","upload-2/assets/"];</script>
 <script>
 (()=>{
 'use strict';
@@ -3049,10 +3049,13 @@ function drawMine(m){
    so they can hold any weapon at any angle. Rig adapted from the Gape handoff (gape-rig.js). */
 let SPR_DIRTY=false;
 const IMGS={};
-function img(path){ let i=IMGS[path]; if(!i){ i=new Image(); i.onload=()=>{ SPR_DIRTY=true; }; i.src='assets/'+path+'.png'; IMGS[path]=i; } return i; }
+const ASSET_BASES=(typeof window!=='undefined'&&window.M8_ASSET_BASES)||['assets/'];
+function img(path){ let i=IMGS[path]; if(!i){ i=new Image(); i._b=0; i.onload=()=>{ SPR_DIRTY=true; };
+    i.onerror=()=>{ if(i._b<ASSET_BASES.length-1){ i._b++; i.src=ASSET_BASES[i._b]+path+'.png'; } else i._failed=true; };
+    i.src=ASSET_BASES[0]+path+'.png'; IMGS[path]=i; } return i; }
 const ok=i=>!!(i&&i.complete&&i.naturalWidth>0);
 const ASSET_LIST='c/bloat c/cinder c/gape c/lank p/bag1 p/bags p/bags2 p/base_6fb3a8 p/base_d8705c p/base_d98bb5 p/base_e3b54f p/bush p/chute p/crate_arms p/crate_boom p/crate_gold p/crate_goo p/crate_kit p/crate_mys p/crate_steel p/crate_wood p/crate_zap p/hat_aviator p/hat_bandana p/hat_bucket p/hat_crown p/hat_grunt p/hat_hard p/hat_medic p/hat_miner p/hat_prop p/hat_pumpkin p/hat_viking p/hay p/hay1 p/hayroll p/icepillar p/pad p/rock p/scarecrow_6fb3a8 p/scarecrow_d8705c p/scarecrow_d98bb5 p/scarecrow_e3b54f p/spring p/tractor v/artgun_6fb3a8 v/artgun_d8705c v/artgun_d98bb5 v/artgun_e3b54f v/arthull_6fb3a8 v/arthull_d8705c v/arthull_d98bb5 v/arthull_e3b54f v/buggy_6fb3a8 v/buggy_d8705c v/buggy_d98bb5 v/buggy_e3b54f v/buggygun_6fb3a8 v/buggygun_d8705c v/buggygun_d98bb5 v/buggygun_e3b54f v/chopper_6fb3a8 v/chopper_d8705c v/chopper_d98bb5 v/chopper_e3b54f v/golem_6fb3a8 v/golem_d8705c v/golem_d98bb5 v/golem_e3b54f v/mechlegs_6fb3a8 v/mechlegs_d8705c v/mechlegs_d98bb5 v/mechlegs_e3b54f v/mechtorso_6fb3a8 v/mechtorso_d8705c v/mechtorso_d98bb5 v/mechtorso_e3b54f v/tankhull_6fb3a8 v/tankhull_d8705c v/tankhull_d98bb5 v/tankhull_e3b54f v/tankturret_6fb3a8 v/tankturret_d8705c v/tankturret_d98bb5 v/tankturret_e3b54f v/turretbase_6fb3a8 v/turretbase_d8705c v/turretbase_d98bb5 v/turretbase_e3b54f v/turrethead_6fb3a8 v/turrethead_d8705c v/turrethead_d98bb5 v/turrethead_e3b54f w/balloon w/beehive w/belcher w/blower w/boghose w/boomerang w/bouncer w/bubble w/chicken w/crystal w/disco w/fireworks w/flame w/frost w/googly w/gravity w/hailmortar w/hammer w/harpoon w/icicle w/lance w/laser w/lavamortar w/longshot w/magma w/magnet w/mines w/minigun w/mortar w/mudmortar w/nade w/orb w/peel w/pistol w/pumpkin w/rifle w/rocket w/satchel w/shotgun w/shrinkray w/slag w/sniper w/snowcannon w/spitter w/sticker w/swapray w/windup w/zapgun'.split(' ');
-function preloadAssets(done,prog){ let n=0; const T=ASSET_LIST.length; const fin=()=>{ n++; if(prog) prog(n/T); if(n===T) done(); }; for(const p of ASSET_LIST){ const i=img(p); if(i.complete) fin(); else { i.addEventListener('load',fin,{once:true}); i.addEventListener('error',fin,{once:true}); } } setTimeout(()=>{ if(n<T){ n=T; done(); } },12000); }
+function preloadAssets(done,prog){ let n=0; const T=ASSET_LIST.length; const fin=()=>{ n++; if(prog) prog(n/T); if(n===T) done(); }; for(const p of ASSET_LIST){ const i=img(p); if(i.complete) fin(); else { i.addEventListener('load',fin,{once:true}); i.addEventListener('error',()=>{ if(i._failed) fin(); }); } } setTimeout(()=>{ if(n<T){ n=T; done(); } },12000); }
 const WHITE=new Map();
 function whiteImg(im){ let c=WHITE.get(im); if(c) return c; c=document.createElement('canvas'); c.width=im.naturalWidth; c.height=im.naturalHeight; const g=c.getContext('2d'); g.drawImage(im,0,0); g.globalCompositeOperation='source-in'; g.fillStyle='#fff'; g.fillRect(0,0,c.width,c.height); WHITE.set(im,c); return c; }
 const SK=52/315;            /* sprite px -> game px, same for every species (one camera, one world) */
