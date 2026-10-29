@@ -1167,7 +1167,9 @@ function P(id,team){ return (G&&!G.demo&&G.mode==='coop'&&team===0)?(RUN.perks[i
 function PU(u,id){ return u&&u.ctrl>=0?P(id,u.team):0; }
 function edmg(){ return Math.min(1.25,D().edmg*(1+0.06*(RUN.round-1))*(G&&G.mode==='coop'?1+0.2*(humanCount()-1):1)); }
 
+let BASE_N=4;
 function basePositions(layout){
+  if(layout===4&&BASE_N===3) return [{x:190,y:190,px:345,py:345},{x:WW-190,y:190,px:WW-345,py:345},{x:WW/2,y:WH-190,px:WW/2,py:WH-345}];
   if(layout===2) return [{x:170,y:WH/2,px:330,py:WH/2},{x:WW-170,y:WH/2,px:WW-330,py:WH/2}];
   return [{x:190,y:190,px:345,py:345},{x:WW-190,y:WH-190,px:WW-345,py:WH-345},{x:WW-190,y:190,px:WW-345,py:345},{x:190,y:WH-190,px:345,py:WH-345}];
 }
@@ -1346,7 +1348,7 @@ function mkBase(team,pos,max){
   return {team,x:pos.x,y:pos.y,hp:max,max,isBase:true,r:36,flash:0,tcd:1,aim:Math.atan2(WH/2-pos.y,WW/2-pos.x),pad:{x:pos.px,y:pos.py},slots:[[],[],[],[]],busy:0,unbox:null,up:[null,null,null]};
 }
 function newGame(cfg){
-  const layout=cfg.teams.length>2?4:2;
+  const layout=cfg.teams.length>2?4:2; BASE_N=cfg.teams.length;
   if(layout===4){ WW=2400; WH=1800; } else { WW=2200; WH=1300; }
   if(cfg.diff&&DIFFS[cfg.diff]) DIFF=cfg.diff;
   const map=genMap(cfg.seed,cfg.theme,layout);
@@ -4986,16 +4988,16 @@ function localAim(u){
 
 /* ================= NET: HOST / CLIENT ================= */
 function gPatch(patch){ NET.g=Object.assign({},NET.g||{},patch); const s=JSON.stringify(NET.g); if(s!==NET.lastG){ NET.lastG=s; NET.game&&NET.game.presence({g:NET.g}).catch(()=>{}); } }
-function lobbyAd(){ if(!NET.api) return; if(NET.role==='host'&&NET.g) NET.api.presence({nick:myNick(),fac:myFaction(),host:{code:NET.code,mode:NET.g.mode,theme:NET.g.theme,n:Object.keys(NET.slots).length,st:NET.g.st}}).catch(()=>{}); else NET.api.presence({nick:myNick(),fac:myFaction(),host:null}).catch(()=>{}); }
+function lobbyAd(){ if(!NET.api) return; if(NET.role==='host'&&NET.g) NET.api.presence({nick:myNick(),fac:myFaction(),host:{code:NET.code,mode:NET.g.mode,theme:NET.g.theme,n:Object.keys(NET.slots).length,st:NET.g.st,b:NET.g.bases||4}}).catch(()=>{}); else NET.api.presence({nick:myNick(),fac:myFaction(),host:null}).catch(()=>{}); }
 function playersFromSlots(){ return Object.entries(NET.slots).map(([peer,slot])=>({slot,nick:NET.nicks[slot]||('P'+(slot+1)),peer})).sort((a,b)=>a.slot-b.slot); }
-async function netHost(mode,theme,diff,code){
+async function netHost(mode,theme,diff,code,bases){
   if(!NET.api) return false;
   if(NET.game) await netLeave(true);
   NET.code=code||randCode(); NET.role='host'; NET.slots={}; NET.nicks={}; NET.g=null; NET.lastG=''; NET.epoch=0; NET.gone={}; NET.qm=!!code; NET.qmT=0;
   try{ NET.game=await (NET.api.peer?NET.api.join('cm-'+NET.code,{hub:true}):NET.api.join('cm-'+NET.code)); }catch(e){ if(!code) banner('COULD NOT HOST',String(e&&e.code||e)); NET.role=null; return false; }
   NET.game.presence({nick:myNick(),fac:myFaction(),hat:myHat(),host:1}).catch(()=>{});
   NET.slots={__me:0}; NET.nicks={0:myNick()}; NET.facs={0:myFaction()}; NET.hats={0:myHat()};
-  gPatch({st:'wait',mode,theme,diff,code:NET.code,slots:{},nicks:NET.nicks,ep:0,round:1});
+  gPatch({st:'wait',mode,theme,diff,code:NET.code,slots:{},nicks:NET.nicks,ep:0,round:1,bases:mode==='ffa'?clamp(bases||4,2,4):4});
   { const room=NET.game; NET.unsubs.push(room.onPeers(ch=>{ if(NET.game===room) onGamePeers(ch); },()=>{})); }
   lobbyAd(); waitingScreen();
   return true;
@@ -5017,7 +5019,7 @@ async function quickMatch(){
   try{
     showScreen(`<div class="card"><div class="eyebrow">QUICK MATCH</div><h2>Finding a game…</h2><p class="note">Looking for an open free-for-all. If there isn't one, you'll host and others will drop in.</p></div>`);
     if(!NET.api.peer){
-      const list=(NET.lobbyPeers||[]).filter(p=>!p.isMe&&p.presence&&p.presence.host&&p.presence.host.code&&(p.presence.host.n||1)<4&&p.presence.host.st==='wait');
+      const list=(NET.lobbyPeers||[]).filter(p=>!p.isMe&&p.presence&&p.presence.host&&p.presence.host.code&&(p.presence.host.n||1)<(p.presence.host.b||4)&&p.presence.host.st==='wait');
       if(list.length&&await netJoin(list[0].presence.host.code)) return;
       await netHost('ffa','random',DIFF,'q'+randCode().slice(0,3)); return;
     }
@@ -5070,7 +5072,7 @@ function onGamePeers(ch){
           const pl=G&&G.players[s]; if(pl){ const h=unitById(pl.heroId); if(h&&!h.dead){ h.ctrl=s; pl.ctrl=h.id; } bannerFor('all',nick.toUpperCase()+' IS BACK','','C8FF3C'); } continue; } }
       if(NET.slots[p.peer]==null){
         NET.hats=NET.hats||{};
-        const used=new Set(Object.values(NET.slots).concat(Object.keys(NET.gone||{}).map(Number))); let s=-1; for(let i=0;i<4;i++) if(!used.has(i)){ s=i; break; }
+        const used=new Set(Object.values(NET.slots).concat(Object.keys(NET.gone||{}).map(Number))), cap=NET.g&&NET.g.mode==='ffa'?(NET.g.bases||4):4; let s=-1; for(let i=0;i<cap;i++) if(!used.has(i)){ s=i; break; }
         if(s<0) continue;
         if(NET.g.st==='play'&&NET.g.mode==='ffa') continue;
         NET.slots[p.peer]=s; NET.nicks[s]=nick; NET.facs[s]=pf; NET.hats[s]=p.presence&&p.presence.hat||null; changed=true;
@@ -5123,7 +5125,7 @@ function applyG(g){
 function hostTeamsCfg(mode,nh){
   const hf=playersFromSlots().map(p=>(NET.facs||{})[p.slot]||'gape'), sp=teamSpecies(mode,hf,RUN.round);
   if(mode==='coop') return {teams:[{col:0,fac:'pip',ai:false,sp:sp[0]},{col:1,fac:'grot',ai:true,sp:sp[1]}]};
-  const teams=[]; for(let i=0;i<4;i++) teams.push({col:i,fac:i<nh?'pip':'grot',ai:i>=nh,sp:sp[i]});
+  const nb=clamp(NET.g&&NET.g.bases||4,2,4), teams=[]; for(let i=0;i<nb;i++) teams.push({col:i,fac:i<nh?'pip':'grot',ai:i>=nh,sp:sp[i]});
   return {teams};
 }
 function hostStart(){
@@ -5686,7 +5688,8 @@ function onlineScreen(){
     <button class="big hot qmbtn" id="qGo" ${ok?'':'disabled'}>QUICK MATCH<small>Jump into an open free-for-all, or start one others can find</small></button>
     <div class="grid2">
       <div class="box"><h3>HOST A GAME</h3>
-        <label class="field">MODE<select id="hMode"><option value="coop">Co-op vs the Chief (rounds + perks)</option><option value="ffa">Free-for-all (4 bases, bots fill empty ones)</option></select></label>
+        <label class="field">MODE<select id="hMode"><option value="coop">Co-op vs the Chief (rounds + perks)</option><option value="ffa">Free-for-all</option></select></label>
+        <label class="field" id="hBasesF">BASES<select id="hBases"><option value="2">1v1 · two bases</option><option value="3">1v1v1 · three bases</option><option value="4" selected>Four bases · bots fill empty ones</option></select></label>
         <label class="field">MAP<select id="hMap"><option value="rotate">Rotate each round</option><option value="random">Random</option>${THEME_KEYS.map(k=>`<option value="${k}">${THEMES[k].name}</option>`).join('')}</select></label>
         ${diffRow()}
         <button class="big" id="hGo" ${ok?'':'disabled'}>HOST GAME</button>
@@ -5702,7 +5705,8 @@ function onlineScreen(){
   wireDiff();
   $('nick').oninput=e=>{ store.set('nick',cleanNick(e.target.value)); };
   $('nick').onchange=()=>{ if(NET.api) NET.api.presence({nick:myNick()}).catch(()=>{}); };
-  $('hGo').onclick=()=>{ store.set('nick',cleanNick($('nick').value)); resetRun($('hMode').value); netHost($('hMode').value,$('hMap').value,DIFF); };
+  $('hGo').onclick=()=>{ store.set('nick',cleanNick($('nick').value)); resetRun($('hMode').value); netHost($('hMode').value,$('hMap').value,DIFF,null,+$('hBases').value); };
+  { const sync=()=>{ const f=$('hBasesF'); if(f) f.hidden=$('hMode').value!=='ffa'; }; $('hMode').onchange=sync; sync(); }
   $('jGo').onclick=()=>{ store.set('nick',cleanNick($('nick').value)); netJoin($('jCode').value); };
   $('oBack').onclick=titleScreen;
   if($('qGo')) $('qGo').onclick=()=>{ store.set('nick',cleanNick(($('nick')||{}).value||myNick())); quickMatch(); };
@@ -5714,19 +5718,20 @@ function renderGamesList(){
   if(!NET.api){ el.innerHTML='<p class="note">Open games show up here when online play is available.</p>'; return; }
   if(NET.api.peer){ el.innerHTML='<p class="note">Type the code your mate sent you, or open their invite link.</p>'; return; }
   if(!list.length){ el.innerHTML='<p class="note">No open games right now. Host one, or type a code.</p>'; return; }
-  el.innerHTML=list.map(p=>{ const h=p.presence.host, full=(h.n||1)>=4, playing=h.st&&h.st!=='wait';
-    return `<div class="gamerow"><span>${esc(cleanNick(p.presence.nick))} · ${h.mode==='ffa'?'Free-for-all':'Co-op'} · ${h.n||1}/4${playing?' · in game':''}</span><button class="ghost" data-code="${esc(h.code)}" ${full||(playing&&h.mode==='ffa')?'disabled':''}>JOIN</button></div>`; }).join('');
+  el.innerHTML=list.map(p=>{ const h=p.presence.host, cap=h.mode==='ffa'?(h.b||4):4, full=(h.n||1)>=cap, playing=h.st&&h.st!=='wait';
+    return `<div class="gamerow"><span>${esc(cleanNick(p.presence.nick))} · ${h.mode==='ffa'?(cap===2?'1v1':cap===3?'1v1v1':'Free-for-all'):'Co-op'} · ${h.n||1}/${cap}${playing?' · in game':''}</span><button class="ghost" data-code="${esc(h.code)}" ${full||(playing&&h.mode==='ffa')?'disabled':''}>JOIN</button></div>`; }).join('');
   el.querySelectorAll('button[data-code]').forEach(b=>b.onclick=()=>{ store.set('nick',cleanNick(($('nick')||{}).value||myNick())); netJoin(b.dataset.code); });
 }
 function waitingScreen(){
   state='lobby'; setPlayUI(false); titleBackdrop();
   const g=NET.g||{}, host=NET.role==='host';
-  const slots=[0,1,2,3].map(s=>{ const nick=(g.nicks||{})[s]; const col=g.mode==='ffa'?TEAM_COLS[s].acc:PCOLS[s];
+  const nb=g.mode==='ffa'?(g.bases||4):4;
+  const slots=[0,1,2,3].slice(0,nb).map(s=>{ const nick=(g.nicks||{})[s]; const col=g.mode==='ffa'?TEAM_COLS[s].acc:PCOLS[s];
     return nick?`<div class="slot"><i style="background:${col}"></i><span>${esc(nick)}${s===0?' · host':''}</span></div>`:`<div class="slot empty"><i style="background:transparent"></i><span>Open slot${g.mode==='ffa'?' · bot team':''}</span></div>`; }).join('');
   showScreen(`<div class="card">
-    <div class="eyebrow">${host?'YOU ARE HOSTING':'JOINED'} · ${g.mode==='ffa'?'FREE-FOR-ALL':'CO-OP VS THE CHIEF'}</div>
+    <div class="eyebrow">${host?'YOU ARE HOSTING':'JOINED'} · ${g.mode==='ffa'?(nb===2?'1V1':nb===3?'1V1V1':'FREE-FOR-ALL'):'CO-OP VS THE CHIEF'}</div>
     <div class="code" aria-label="Game code">${esc(String(NET.code||'').toUpperCase())}</div>
-    <p class="note">${host?(NET.api&&NET.api.peer?'Send your mates the invite link, or tell them the code. Up to 4 players.':'Tell your mates this code. They open this page on claude.ai, go to Online and join. Up to 4 players.'):'Waiting for the host to start the game.'} Map: ${g.theme==='rotate'?'rotates each round':g.theme==='random'?'random':esc(THEMES[g.theme]?THEMES[g.theme].name:'')}. Difficulty: ${esc(DIFFS[g.diff]?DIFFS[g.diff].name:'')}.</p>
+    <p class="note">${host?(NET.api&&NET.api.peer?'Send your mates the invite link, or tell them the code. Up to ${nb} players.':'Tell your mates this code. They open this page on claude.ai, go to Online and join. Up to ${nb} players.'):'Waiting for the host to start the game.'} Map: ${g.theme==='rotate'?'rotates each round':g.theme==='random'?'random':esc(THEMES[g.theme]?THEMES[g.theme].name:'')}. Difficulty: ${esc(DIFFS[g.diff]?DIFFS[g.diff].name:'')}.</p>
     ${NET.qm?'<p class="note qm" id="qmc">Waiting for someone to drop in…</p>':''}
     <p class="note warn">Heads up: the host's browser runs the game. If the host closes the page, the match ends for everyone. Drop out and you have 30 seconds to rejoin.</p>
     <div class="slots">${slots}</div>
