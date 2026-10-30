@@ -328,6 +328,13 @@ kbd{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:800;font-size:
 .entry .nm{display:flex;justify-content:space-between;align-items:center;gap:6px}
 .entry b{font-family:var(--display);font-weight:400;font-size:14px;overflow-wrap:anywhere}
 .entry small{font-size:11.5px;font-weight:600;line-height:1.3;opacity:.85}
+.entry small.vs{font-size:10.5px;opacity:1;border-top:2px dashed rgba(0,0,0,.18);padding-top:4px;margin-top:auto}
+.entry small.vs em{font-style:normal;font-family:var(--display);font-size:10px;color:#2b7d35;letter-spacing:.03em}
+.entry small.vs em.bad{color:#b8392b}
+.vsrules{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-bottom:6px}
+.vsrules>div{border:3px solid var(--ink);border-radius:var(--r-md);background:var(--paper);padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.vsrules b{font-family:var(--display);font-weight:400;font-size:13px}
+.vsrules small{font-size:11.5px;font-weight:600;line-height:1.3;opacity:.85}
 .mpad{display:grid;grid-template-columns:repeat(2,15px);gap:2px;padding:3px;border:2px solid var(--ink);border-radius:5px;background:#E9D9B4;flex:none}
 .mpad i{width:15px;height:15px;border-radius:3px;border:1.5px dashed rgba(36,19,47,.3);display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--display);font-size:9px;color:var(--cream)}
 .mpad i.c1{background:var(--wood);border:2px solid var(--ink)}
@@ -434,7 +441,7 @@ button.perk:hover{background:#fff;transform:translateY(-3px);box-shadow:0 8px 0 
 <script>
 (()=>{
 'use strict';
-const BUILD_TAG='29Oct-2002';
+const BUILD_TAG='30Oct-1227';
 /* ================= CORE & DATA ================= */
 const $=id=>document.getElementById(id);
 const cv=$('game'); let ctx=cv.getContext('2d');
@@ -482,30 +489,30 @@ const TYPES={
   boss:{hp:160,speed:170,r:18,weapon:'rifle',name:'CHIEF',top:50},
   hauler:{hp:55,speed:190,r:13,weapon:'pistol',name:'BUILDER',top:52},
   grunt:{hp:75,speed:150,r:14,weapon:'rifle',name:'GRUNT',top:42},
-  sniper:{hp:55,speed:140,r:14,weapon:'sniper',name:'SCOUT',top:50},
+  sniper:{hp:50,speed:140,r:14,weapon:'sniper',name:'SCOUT',top:50},
   medic:{hp:70,speed:165,r:14,weapon:'pistol',name:'MEDIC',top:42},
   rocketeer:{hp:85,speed:135,r:15,weapon:'rocket',name:'BOMBER',top:50},
   mortar:{hp:80,speed:120,r:15,weapon:'mortar',name:'HEAVY',top:50},
-  flamer:{hp:110,speed:150,r:15,weapon:'flame',name:'FLAMER',top:42},
+  flamer:{hp:260,speed:180,r:15,weapon:'flame',name:'FLAMER',top:42},
   turret:{hp:220,speed:0,r:18,weapon:'tgun',name:'TURRET',top:50,structure:true,ride:true},
   tank:{hp:340,speed:95,r:28,weapon:'cannon',name:'TANK',top:66,ride:true},
-  mech:{hp:560,speed:105,r:30,weapon:'minigun',name:'MECH',top:88,ride:true},
+  mech:{hp:480,speed:105,r:30,weapon:'minigun',name:'MECH',top:88,ride:true},
   golem:{hp:1100,speed:82,r:36,weapon:'slam',name:'GOLEM',top:120,ride:true},
   scarecrow:{hp:150,speed:0,r:14,weapon:'crow',name:'SCARECROW',top:64,structure:true},
-  brute:{hp:260,speed:125,r:20,weapon:'hammer',name:'BRUTE',top:58},
-  sapper:{hp:70,speed:178,r:14,weapon:'satchel',name:'SAPPER',top:44},
+  brute:{hp:450,speed:160,r:20,weapon:'hammer',name:'BRUTE',top:58},
+  sapper:{hp:120,speed:178,r:14,weapon:'satchel',name:'SAPPER',top:44},
   artillery:{hp:300,speed:58,r:26,weapon:'howitzer',name:'ARTILLERY',top:56,ride:true},
   buggy:{hp:210,speed:255,r:22,weapon:'buggygun',name:'BUGGY',top:50,ride:true},
   chopper:{hp:260,speed:185,r:24,weapon:'pods',name:'CHOPPER',top:96,ride:true,fly:true},
   /* tribe-only builds (6 crates, 3-2-1) and the four titans that replace the golem */
-  harvester:{hp:540,speed:118,r:32,weapon:'mow',name:'HARVESTER',top:74,ride:true},
-  toad:{hp:440,speed:150,r:30,weapon:'gob',name:'TOAD WALKER',top:84,ride:true},
-  strider:{hp:270,speed:128,r:22,weapon:'lance2',name:'STILT STRIDER',top:150,ride:true,stilts:true},
-  mole:{hp:400,speed:150,r:28,weapon:'erupt',name:'MOLE DRILL',top:62,ride:true},
+  harvester:{hp:750,speed:135,r:32,weapon:'mow',name:'HARVESTER',top:74,ride:true},
+  toad:{hp:390,speed:150,r:30,weapon:'gob',name:'TOAD WALKER',top:84,ride:true},
+  strider:{hp:400,speed:128,r:22,weapon:'lance2',name:'STILT STRIDER',top:150,ride:true,stilts:true},
+  mole:{hp:320,speed:150,r:28,weapon:'erupt',name:'MOLE DRILL',top:62,ride:true},
   colossus:{hp:1150,speed:80,r:36,weapon:'slam',name:'COLOSSUS',top:132,ride:true,titan:true},
-  bogking:{hp:1250,speed:76,r:38,weapon:'slam',name:'BOG KING',top:116,ride:true,titan:true},
-  frostgiant:{hp:1100,speed:84,r:36,weapon:'slam',name:'FROST GIANT',top:132,ride:true,titan:true},
-  magmatitan:{hp:1150,speed:80,r:36,weapon:'slam',name:'MAGMA TITAN',top:132,ride:true,titan:true},
+  bogking:{hp:1500,speed:76,r:38,weapon:'slam',name:'BOG KING',top:116,ride:true,titan:true},
+  frostgiant:{hp:1350,speed:84,r:36,weapon:'slam',name:'FROST GIANT',top:132,ride:true,titan:true},
+  magmatitan:{hp:1450,speed:80,r:36,weapon:'slam',name:'MAGMA TITAN',top:132,ride:true,titan:true},
   ghost:{hp:1,speed:280,r:14,weapon:'boo',name:'GHOST',top:44,ghost:true}};
 TYPES.golem.titan=true;
 const TYPE_KEYS=Object.keys(TYPES);
@@ -513,19 +520,19 @@ const WEAPONS={
   pistol:{cd:.5,dmg:9,spd:650,range:380,spread:.06,kind:'b'},
   rifle:{cd:.15,dmg:7,spd:780,range:460,spread:.07,kind:'b'},
   shotgun:{cd:.62,dmg:9,spd:640,range:290,spread:.32,pellets:7,kind:'p'},
-  sniper:{cd:1.4,dmg:52,spd:1500,range:760,spread:.01,kind:'s'},
+  sniper:{cd:1.7,dmg:44,spd:1500,range:760,spread:.01,kind:'s'},
   rocket:{cd:1.25,dmg:42,spd:440,range:560,spread:.03,splash:74,kind:'r'},
   cannon:{cd:1.7,dmg:60,spd:540,range:560,spread:.03,splash:88,kind:'r'},
-  minigun:{cd:.06,dmg:6,spd:820,range:500,spread:.15,kind:'b'},
+  minigun:{cd:.06,dmg:5.2,spd:820,range:500,spread:.2,kind:'b'},
   tgun:{cd:.24,dmg:8,spd:800,range:430,spread:.06,kind:'b'},
-  mortar:{cd:2.3,dmg:46,range:660,min:110,splash:82,kind:'m',lob:true},
+  mortar:{cd:2.3,dmg:68,range:660,min:110,splash:110,kind:'m',lob:true},
   nade:{cd:.75,dmg:42,range:440,min:80,splash:80,kind:'m',lob:true},
-  flame:{cd:.05,dmg:3.4,spd:330,range:180,spread:.3,kind:'f'},
+  flame:{cd:.05,dmg:3.4,spd:360,range:220,spread:.3,kind:'f'},
   zapgun:{cd:.3,dmg:12,spd:900,range:460,spread:.03,kind:'z',chain:2},
   laser:{cd:.9,dmg:32,range:640,kind:'l'},
   mines:{cd:.7,dmg:55,range:150,splash:80,kind:'n'},
   bouncer:{cd:.55,dmg:30,spd:520,range:900,spread:.05,splash:56,kind:'o'},
-  slam:{cd:1.4,dmg:44,range:70,kind:'melee'},
+  slam:{cd:1.4,dmg:58,range:70,kind:'melee'},
   blower:{cd:.09,dmg:1.4,range:250,cone:.5,kind:'w'},
   magnet:{cd:.1,dmg:0,range:340,cone:.4,kind:'g'},
   bubble:{cd:.75,dmg:3,spd:300,range:440,spread:.04,kind:'u'},
@@ -536,29 +543,29 @@ const WEAPONS={
   disco:{cd:1.2,dmg:6,range:460,min:90,splash:135,kind:'d',lob:true},
   /* BLOATS (bog) */
   spitter:{cd:.2,dmg:7,spd:600,range:400,spread:.08,kind:'b',goo:1},
-  orb:{cd:.95,dmg:30,spd:330,range:640,spread:0,kind:'q',splash:48},
-  belcher:{cd:1.4,dmg:8,range:480,min:90,splash:95,kind:'m',lob:true,shell:'gas'},
-  mudmortar:{cd:2.1,dmg:30,range:640,min:110,splash:80,kind:'m',lob:true,shell:'mud'},
+  orb:{cd:.95,dmg:24,spd:330,range:640,spread:0,kind:'q',splash:48},
+  belcher:{cd:1.4,dmg:20,range:480,min:90,splash:95,kind:'m',lob:true,shell:'gas'},
+  mudmortar:{cd:2.1,dmg:56,range:640,min:110,splash:96,kind:'m',lob:true,shell:'mud'},
   boghose:{cd:.06,dmg:2.2,spd:300,range:190,spread:.25,kind:'h'},
   /* LANKS (icy peaks) */
   icicle:{cd:.32,dmg:11,spd:900,range:480,spread:.03,kind:'i',pierce:1},
-  lance:{cd:1.5,dmg:46,spd:1500,range:780,spread:.01,kind:'i',pierce:9},
+  lance:{cd:1.8,dmg:38,spd:1500,range:780,spread:.01,kind:'i',pierce:9},
   snowcannon:{cd:1.4,dmg:22,spd:240,range:520,spread:.02,kind:'v'},
-  hailmortar:{cd:2.2,dmg:26,range:660,min:110,splash:70,kind:'m',lob:true,shell:'hail'},
-  frost:{cd:.06,dmg:2.3,spd:320,range:190,spread:.22,kind:'F'},
+  hailmortar:{cd:2.2,dmg:52,range:660,min:110,splash:86,kind:'m',lob:true,shell:'hail'},
+  frost:{cd:.06,dmg:2.8,spd:320,range:190,spread:.22,kind:'F'},
   /* CINDERS (volcanic caves) */
   slag:{cd:.7,dmg:8,spd:600,range:280,spread:.3,pellets:6,kind:'a'},
-  longshot:{cd:1.4,dmg:38,spd:1400,range:740,spread:.01,kind:'t'},
+  longshot:{cd:1.7,dmg:34,spd:1400,range:740,spread:.01,kind:'t'},
   magma:{cd:.85,dmg:32,spd:480,range:700,spread:.05,splash:60,kind:'j'},
-  lavamortar:{cd:2.2,dmg:32,range:640,min:110,splash:80,kind:'m',lob:true,shell:'lava'},
+  lavamortar:{cd:2.2,dmg:56,range:640,min:110,splash:96,kind:'m',lob:true,shell:'lava'},
   crystal:{cd:.1,dmg:3,range:230,kind:'c'},
   /* event arms + the scarecrow's crows */
   googly:{cd:.07,dmg:3,spd:760,range:420,spread:.12,kind:'G'},
   pumpkin:{cd:1.6,dmg:12,range:440,min:80,splash:60,kind:'m',lob:true,shell:'pumpkin'},
   crow:{cd:.9,dmg:8,spd:380,range:300,spread:.2,kind:'C'},
   /* new builds */
-  hammer:{cd:1.0,dmg:30,range:60,kind:'melee'},
-  satchel:{cd:1.5,dmg:40,range:320,min:60,splash:80,kind:'m',lob:true,shell:'satchel'},
+  hammer:{cd:0.9,dmg:40,range:60,kind:'melee'},
+  satchel:{cd:1.5,dmg:40,range:400,min:60,splash:80,kind:'m',lob:true,shell:'satchel'},
   howitzer:{cd:3.0,dmg:75,range:960,min:200,splash:110,kind:'m',lob:true},
   buggygun:{cd:.09,dmg:6,spd:820,range:420,spread:.1,kind:'b'},
   pods:{cd:.5,dmg:22,spd:520,range:560,spread:.12,splash:40,kind:'r'},
@@ -572,12 +579,29 @@ const WEAPONS={
   chicken:{cd:.45,dmg:14,range:70,kind:'H'},
   harpoon:{cd:1.2,dmg:24,spd:900,range:520,spread:.02,kind:'J'},
   /* tribe-only builds */
-  mow:{cd:.32,dmg:16,range:64,kind:'melee'},
-  gob:{cd:1.3,dmg:34,spd:470,range:540,spread:.03,splash:64,kind:'r'},
-  lance2:{cd:1.6,dmg:44,spd:1500,range:840,spread:.01,kind:'i',pierce:9},
-  erupt:{cd:2.4,dmg:42,range:96,kind:'melee'},
+  mow:{cd:.32,dmg:24,range:64,kind:'melee'},
+  gob:{cd:1.3,dmg:28,spd:470,range:540,spread:.03,splash:64,kind:'r'},
+  lance2:{cd:1.5,dmg:52,spd:1500,range:840,spread:.01,kind:'i',pierce:9},
+  erupt:{cd:2.4,dmg:36,range:96,kind:'melee'},
   boo:{cd:3.5,dmg:0,range:110,kind:'melee'}};
 const W_KEYS=Object.keys(WEAPONS);
+/* ---- COUNTERS: every hit is scaled by what fired it against what it hit ----
+   armour: L light (most M8s)  H heavy (flamer, brute)  A armour (vehicles, walkers, titans, towers)  F air (chopper) */
+const ARMOR_OF={flamer:'H',brute:'H',tank:'A',mech:'A',artillery:'A',buggy:'L',golem:'A',harvester:'A',toad:'A',strider:'A',mole:'A',colossus:'A',bogking:'A',frostgiant:'A',magmatitan:'A',turret:'A',scarecrow:'A',chopper:'F'};
+const WCLASS={flame:'burn',boghose:'burn',frost:'burn',crystal:'burn',
+  sniper:'ap',lance:'ap',lance2:'ap',longshot:'ap',orb:'at',laser:'ap',harpoon:'ap',
+  rocket:'at',pods:'at',gob:'at',magma:'at',snowcannon:'at',bouncer:'at',fireworks:'at',windup:'at',boomerang:'at',
+  cannon:'cannon',howitzer:'lob',mortar:'lob',nade:'lob',belcher:'lob',mudmortar:'lob',hailmortar:'lob',lavamortar:'lob',disco:'lob',pumpkin:'lob',gravity:'lob',balloon:'lob',
+  satchel:'sat',buggygun:'raid',hammer:'smash',slam:'slam',mow:'mow',erupt:'slam',chicken:'slam',peel:'slam'};
+const VS={gun:{L:1,H:0.6,A:0.5,F:1.3}, burn:{L:1.8,H:1,A:0.6,F:0}, ap:{L:0.7,H:1.3,A:1.25,F:1}, at:{L:0.7,H:1,A:2,F:1},
+  cannon:{L:0.9,H:1,A:1.6,F:0}, lob:{L:1.4,H:1,A:0.8,F:0}, sat:{L:0.6,H:1.2,A:3.5,F:0}, smash:{L:1,H:1.2,A:2.5,F:0}, slam:{L:1.2,H:1,A:1,F:0}, raid:{L:1.3,H:0.9,A:1,F:1}, mow:{L:1.5,H:1.2,A:0.8,F:0}};
+/* who beats whom at equal crates, measured in the fight sim (see COUNTERS_SRC). Shown in the stack book */
+let COUNTERS={"grunt":{"good":["chopper","golem"],"bad":["artillery","mech","tank","flamer"]},"sniper":{"good":["brute","chopper","golem","flamer"],"bad":["artillery","squad"]},"medic":{"good":["chopper","sapper"],"bad":["artillery","grunt","flamer","mortar"]},"rocketeer":{"good":["brute","flamer","twins","grunt"],"bad":["artillery","mortar"]},"twins":{"good":["golem","chopper"],"bad":["artillery","mech","tank","rocketeer"]},"tank":{"good":["golem","brute","twins","flamer"],"bad":["chopper","sapper","sniper"]},"mortar":{"good":["twins","squad","rocketeer"],"bad":["chopper","artillery","mech","buggy"]},"flamer":{"good":["artillery","grunt","mortar","buggy"],"bad":["chopper","golem","rocketeer","tank"]},"mech":{"good":["golem","twins","grunt","mortar"],"bad":["tank","squad","brute"]},"sapper":{"good":["brute","tank","golem","artillery"],"bad":["chopper","squad","buggy","sniper"]},"artillery":{"good":["twins","mortar","squad","grunt"],"bad":["chopper","brute","golem","flamer"]},"buggy":{"good":["mortar","sapper"],"bad":["flamer","rocketeer","mech","tank"]},"chopper":{"good":["brute","artillery","sapper","flamer"],"bad":["squad","sniper","grunt","mech"]},"squad":{"good":["chopper","sapper","golem","mech"],"bad":["artillery","mortar"]},"brute":{"good":["artillery","flamer","mech","mortar"],"bad":["chopper","rocketeer","tank","sniper"]},"special:gape":{"good":["brute","flamer","artillery","mortar"],"bad":["chopper","rocketeer","grunt","mech"]},"golem:gape":{"good":["artillery","flamer","mortar","brute"],"bad":["chopper","tank","mech","sapper"]},"special:bloat":{"good":["flamer","twins","artillery","grunt"],"bad":["squad","sniper"]},"golem:bloat":{"good":["flamer","rocketeer","brute","mortar"],"bad":["mech","chopper","squad","tank"]},"special:lank":{"good":["mech"],"bad":["sapper","squad","brute","sniper"]},"golem:lank":{"good":["brute","flamer","artillery"],"bad":["chopper","rocketeer","mech","tank"]},"special:cinder":{"good":["twins","sapper","grunt","flamer"],"bad":["sniper"]},"golem:cinder":{"good":["flamer","artillery","mortar"],"bad":["mech","chopper","tank","rocketeer"]}};
+const TYPE_BUILD={grunt:'grunt',sniper:'sniper',medic:'medic',rocketeer:'rocketeer',tank:'tank',mortar:'mortar',flamer:'flamer',mech:'mech',sapper:'sapper',artillery:'artillery',buggy:'buggy',chopper:'chopper',brute:'brute',
+  harvester:'special',toad:'special',strider:'special',mole:'special',golem:'golem',colossus:'golem',bogking:'golem',frostgiant:'golem',magmatitan:'golem'};
+const CRATES_OF={grunt:2,sniper:2,medic:3,rocketeer:3,turret:3,twins:4,tank:4,mortar:4,flamer:4,mech:5,sapper:5,artillery:5,buggy:5,chopper:6,squad:6,brute:6,special:6,golem:7};
+function vsInfo(k,sp){ return COUNTERS[k+':'+sp]||COUNTERS[k]||null; }
+function vsMul(w,v){ if(!w||!v) return 1; const t=VS[WCLASS[w]||'gun']; return t[ARMOR_OF[v.type]||'L']; }
 const WNAME={boo:'BOO',mow:'REEL',gob:'GOB CANNON',lance2:'STRIDER LANCE',erupt:'ERUPTION',hammer:'HAMMER',satchel:'SATCHEL',howitzer:'HOWITZER',buggygun:'BUGGY GUN',pods:'ROCKET PODS',boomerang:'BOOMERANG',shrinkray:'SHRINK RAY',beehive:'BEEHIVE',gravity:'GRAVITY BOMB',fireworks:'FIREWORKS',balloon:'WATER BALLOONS',chicken:'RUBBER CHICKEN',harpoon:'HARPOON',pistol:'PISTOL',rifle:'RIFLE',shotgun:'SHOTGUN',sniper:'SNIPER',rocket:'ROCKETS',cannon:'CANNON',minigun:'MINIGUN',tgun:'TURRET GUN',mortar:'MORTAR',nade:'GRENADES',flame:'FLAMER',zapgun:'ZAPPER',laser:'LASER',mines:'MINES',bouncer:'BOUNCER',slam:'SLAM',blower:'LEAF BLOWER',magnet:'CRATE MAGNET',bubble:'BUBBLE GUN',windup:'WIND-UP M8S',peel:'SLIPPY PEELS',sticker:'STICKER GUN',swapray:'SWAP-O-RAY',disco:'DISCO BALLS',spitter:'SPITTER',orb:'WATER ORB',belcher:'GAS BELCHER',mudmortar:'MUD MORTAR',boghose:'SLIME HOSE',icicle:'ICICLE GUN',lance:'ICICLE LANCE',snowcannon:'SNOWBALL CANNON',hailmortar:'HAIL MORTAR',frost:'FROST BLOWER',slag:'SLAG SHOTTY',longshot:'EMBER LONGSHOT',magma:'MAGMA BOUNCER',lavamortar:'LAVA MORTAR',crystal:'CRYSTAL BEAM',googly:'GOOGLY GUN',pumpkin:'PUMPKIN BOMBS',crow:'CROWS'};
 const ARMS_POOL=[['shotgun',20],['minigun',160],['rocket',8],['nade',6],['zapgun',40],['flame',140],['sniper',8],['laser',8],['mines',5],['bouncer',10],['blower',130],['magnet',100],['bubble',14],['windup',8],['peel',10],['sticker',45],['swapray',10],['disco',7],['googly',160],['pumpkin',5],['boomerang',12],['shrinkray',14],['beehive',30],['gravity',5],['fireworks',10],['balloon',12],['chicken',40],['harpoon',10]];
 /* the odd ones come up more often: they are what makes a round go sideways */
@@ -1413,6 +1437,7 @@ function spawnUnit(team,type,x,y,o={}){
     traits:Object.assign({},o.traits||{}),rank:o.rank||1,xp:0,dmgMul:1,dmgScale:1,fireMul:1,scarf:null};
   const FS=FACTIONS[sp]; if(!T.ride&&!T.structure&&FS){ u.speed*=FS.spd; }
   u.baseHp=(!T.ride&&!T.structure&&FS?FS.hp:1)*T.hp*((tm.ai&&!G.demo&&G.mode==='coop')?1+0.1*(RUN.round-1):1)*((o.built&&P('vet',team))?1+0.5*P('vet',team):1);
+  if(o.hpMul) u.baseHp*=o.hpMul;
   if(tm.ai&&!G.demo){ u.inacc=Math.max(1,2.2-(DIFF==='brutal'?0.25:0.15)*(RUN.round-1))+D().eacc; u.dmgScale=edmg(); u.fireMul=D().efire; }
   else if(tm.ai) u.inacc=1.8;
   recalc(u,true);
@@ -1450,6 +1475,9 @@ function pickPlan(t){
   if(n>=5) pool.push(['mech',1+(n-5)]);
   if(n>=6) pool.push(['special',1]);
   if(n>=7) pool.push(['golem',1]);
+  /* answer what the enemy is fielding: builds that beat their big stuff get picked far more */
+  if(G&&G.units&&!G.demo){ const seen={}; for(const v of G.units){ if(v.dead||v.team===t.id||v.structure) continue; const k=TYPE_BUILD[v.type]; if(k&&CRATES_OF[k]>=4) seen[k]=(seen[k]||0)+1; }
+    for(const p of pool){ const vi=vsInfo(p[0],t.sp); if(!vi) continue; let m=0; for(const k of vi.good) m+=seen[k]||0; if(m) p[1]*=1+1.5*Math.min(3,m); } }
   let tot=0; for(const p of pool) tot+=p[1]; let r=Math.random()*tot;
   for(const p of pool){ r-=p[1]; if(r<=0) return {key:p[0],h:PLAN[p[0]]}; }
   return {key:'grunt',h:PLAN.grunt};
@@ -1512,7 +1540,7 @@ function slotFor(u,b){
   return best;
 }
 function nearestGround(u,maxd){ let best=null,bd=maxd*maxd; for(const c of G.crates){ if(c.state!=='ground'||c.kind==='mys') continue; const d=d2(u,c); if(d<bd){bd=d;best=c;} } return best; }
-function nearestFoe(u,maxd){ let best=null,bd=maxd*maxd; for(const v of G.units){ if(v.dead||v.hidden||v.team===u.team||v.ghostU) continue; const d=d2(u,v); if(d<bd){bd=d;best=v;} } return best; }
+function nearestFoe(u,maxd){ let best=null,bd=maxd*maxd; for(const v of G.units){ if(v.dead||v.hidden||v.team===u.team||v.ghostU||(u.weapon&&vsMul(u.weapon,v)===0)) continue; const d=d2(u,v); if(d<bd){bd=d;best=v;} } return best; }
 function countFighters(team){ let n=0; for(const u of G.units) if(!u.dead&&u.team===team&&u.role==='fighter'&&!u.chief&&!u.structure) n++; return n; }
 function countTurrets(team){ let n=0; for(const u of G.units) if(!u.dead&&u.team===team&&u.structure&&u.type!=='scarecrow') n++; return n; }
 function primaryTrait(u){ let best=null,bv=0; const t=u.traits||{}; for(const k of TRAITS) if((t[k]||0)>bv){bv=t[k];best=k;} return best; }
@@ -1577,7 +1605,9 @@ function speak(u,key,chance=0.35,force){
 function traitCode(t){ let c=0,m=1; for(const k of TRAITS){ c+=(t[k]||0)*m; m*=3; } return c; }
 
 /* ================= COMBAT ================= */
-function shoot(u,ang){
+let HITW=null;
+function shoot(u,ang){ const pw=HITW; HITW=u.weapon; try{ shoot0(u,ang); } finally { HITW=pw; } }
+function shoot0(u,ang){
   if(u.bub>0||u.dance>0) return;
   const w=WEAPONS[u.weapon];
   let cd=w.cd*(u.fireMul||1); cd/=1+0.35*PU(u,'tap');
@@ -1603,14 +1633,14 @@ function shoot(u,ang){
     d=clamp(d,w.min||80,w.range);
     const sp=u.ctrl<0?30*u.inacc:0;
     const tx=clamp(u.x+Math.cos(ang)*d+rr(-sp,sp),50,WW-50), ty=clamp(u.y+Math.sin(ang)*d+rr(-sp,sp),50,WH-50);
-    G.shells.push({x0:u.x,y0:u.y,tx,ty,t:0,T:0.55+d/900,H:90+d*0.25,dmg,splash:w.splash+(tr.boom||0)*12,team:u.team,owner:u,x:u.x,y:u.y,z:30,id:++UID,kind:w.shell||(w.kind==='d'?'disco':'')});
+    G.shells.push({w:u.weapon,x0:u.x,y0:u.y,tx,ty,t:0,T:0.55+d/900,H:90+d*0.25,dmg,splash:w.splash+(tr.boom||0)*12,team:u.team,owner:u,x:u.x,y:u.y,z:30,id:++UID,kind:w.shell||(w.kind==='d'?'disco':'')});
     sfxPlay(weaponSfx(u)||'m',u.x,u.y,u.sp); use(); return;
   }
   const n=w.pellets||1, spr=(w.spread||0)*(u.ctrl<0?u.inacc:1);
   const btr={boom:tr.boom||0,zap:Math.min(3,(tr.zap||0)+(w.chain||0)),goo:(tr.goo||0)+(w.goo||0)}, FL=w.kind==='f'||w.kind==='h'||w.kind==='F';
   for(let i=0;i<n;i++){
     const a=ang+(Math.random()-.5)*2*spr, s=(w.spd||600)*(n>1||FL?rr(.8,1.1):1);
-    G.bullets.push({x:u.x+Math.cos(a)*(u.r+10),y:u.y+Math.sin(a)*(u.r+10),vx:Math.cos(a)*s,vy:Math.sin(a)*s,team:u.team,dmg,life:w.range/(w.spd||600)*(n>1||FL?rr(.75,1.1):1),splash:w.splash||0,kind:w.kind,owner:u,bounce:w.kind==='o'||w.kind==='j'?3:w.kind==='k'?8:PU(u,'rico')?1:0,tr:btr,t:0,id:++UID,pierce:w.pierce||0,size:1}); shotSetup(G.bullets[G.bullets.length-1],w,u);
+    G.bullets.push({w:u.weapon,x:u.x+Math.cos(a)*(u.r+10),y:u.y+Math.sin(a)*(u.r+10),vx:Math.cos(a)*s,vy:Math.sin(a)*s,team:u.team,dmg,life:w.range/(w.spd||600)*(n>1||FL?rr(.75,1.1):1),splash:w.splash||0,kind:w.kind,owner:u,bounce:w.kind==='o'||w.kind==='j'?3:w.kind==='k'?8:PU(u,'rico')?1:0,tr:btr,t:0,id:++UID,pierce:w.pierce||0,size:1}); shotSetup(G.bullets[G.bullets.length-1],w,u);
   }
   if(!FL) part({x:u.x+Math.cos(ang)*(u.r+16),y:u.y+Math.sin(ang)*(u.r+16),z:u.r+6,life:.06,size:w.kind==='r'?14:9,col:w.kind==='z'?'#9FE3FF':'#FFE58A',type:'flash'});
   if(w.kind==='b'||w.kind==='p'||w.kind==='s') part({x:u.x,y:u.y,z:u.r+4,vx:Math.cos(ang+Math.PI/2)*rr(40,90),vy:Math.sin(ang+Math.PI/2)*rr(40,90),vz:rr(80,160),g:800,life:.6,size:3,col:'#E3B33C',type:'shell',rot:Math.random()*7,vr:rr(-20,20)});
@@ -1664,13 +1694,14 @@ function damageObs(o,amt){
 }
 function damage(u,amt,src){
   if(u.dead||u.hidden||u.inv>0||amt<=0) return;
+  const vm=HITW&&src&&src.team!==u.team?vsMul(HITW,u):1; if(vm===0){ if(src&&src.ctrl===G.mySlot&&src.ctrl>=0&&G.t-(src.noHitT||0)>1.2){ src.noHitT=G.t; textL(u.x,u.y-(topOf(u))-8,'CAN\'T HIT','#B8B0A8',12,.8); } return; } amt*=vm;
   if((u.traits.steel||0)>=2) amt*=0.8;
   if(u.shrink>0) amt*=1.4;
   if(u.shatterT&&G.t<u.shatterT&&u.frz>0) amt*=1.6;
   if(u.armor>0){ const a=Math.min(u.armor,amt); u.armor-=a; amt-=a; if(amt<=0){ u.flash=0.06; return; } }
   u.hp-=amt; u.flash=0.1; u.hurtT=0.35; u.lastHit=G.t; if(u.goldOn) goldHurt(u,amt);
   if(u.bub>0&&src) popBubble(u,src);
-  if(src&&src.ctrl>=0){ if(PU(src,'vamp')) src.hp=Math.min(src.maxhp,src.hp+amt*0.25*PU(src,'vamp')); if(src.ctrl===G.mySlot&&amt>=2) textL(u.x+rr(-8,8),u.y-(topOf(u))-8,Math.round(amt),'#FFE14D',13,.6);
+  if(src&&src.ctrl>=0){ if(PU(src,'vamp')) src.hp=Math.min(src.maxhp,src.hp+amt*0.25*PU(src,'vamp')); if(src.ctrl===G.mySlot&&amt>=2) textL(u.x+rr(-8,8),u.y-(topOf(u))-8,Math.round(amt),vm>=1.3?'#FF8A3C':vm<=0.6?'#B8B0A8':'#FFE14D',vm>=1.3?16:13,.6);
     else if(G.net==='host'&&amt>=2){ const p=G.players[src.ctrl]; if(p&&G.t-(p.hitEvT||0)>0.08){ p.hitEvT=G.t; fx('Y',src.ctrl,u.x,u.y-(topOf(u))-8,amt,u.hp-amt<=0?1:0); } } }
   if(u.ctrl===G.mySlot&&u.ctrl>=0){ shake(5); G.hitDir={a:src?Math.atan2(src.y-u.y,src.x-u.x):null,t:0.6}; }
   else if(u.ctrl>=0&&G.net==='host'){ const p=G.players[u.ctrl]; if(p&&G.t-(p.hurtEvT||0)>0.15){ p.hurtEvT=G.t; fx('W',u.ctrl,src?Math.round(src.x):-1,src?Math.round(src.y):-1); } }
@@ -1947,7 +1978,7 @@ function finishUnbox(b){
     else { let tx=0,ty=0,k=0; do{ tx=x+dx*rr(240,420); ty=y+rr(-300,300); k++; }while(k<10&&blockedAt(tx,ty,24)); tx=clamp(tx,80,WW-80); ty=clamp(ty,80,WH-80); const t=spawnUnit(team,'turret',tx,ty,{traits:res.traits,rank:res.rank}); t.pop=1.2; fx('D',tx,ty,10,'F3E2B8'); }
   } else {
     let first=null; const tmm=G.teams[team], ld=slot>=0?slot:(tmm.humans.length?tmm.humans[(tmm.lead++)%tmm.humans.length]:-1);
-    chUnits(res.key,G.teams[team].sp).forEach((tp,i)=>{ const u=spawnUnit(team,tp,x+i*14*dx,y+(i===1?12:i===2?-12:0),{built:true,traits:res.traits,rank:res.rank,hop:true,leader:ld}); u.pop=1.2; u.vx=dx*rr(140,240); u.vy=rr(-110,110); if(!first) first=u; });
+    chUnits(res.key,G.teams[team].sp).forEach((tp,i)=>{ const u=spawnUnit(team,tp,x+i*14*dx,y+(i===1?12:i===2?-12:0),{built:true,traits:res.traits,rank:res.rank,hop:true,leader:ld,hpMul:res.key==='twins'?1.3:0}); u.pop=1.2; u.vx=dx*rr(140,240); u.vy=rr(-110,110); if(!first) first=u; });
     if(P('twin',team)&&Math.random()<0.3*P('twin',team)){ const u=spawnUnit(team,'grunt',x,y,{built:true,hop:true,leader:slot}); u.pop=1.2; u.vx=dx*200; fx('T',x,y-130,'TWIN DROP','8FE07A',16,10); }
     if(first) setTimeout(()=>{ if(G&&!first.dead) speak(first,'unbox',0.8,true); },350);
   }
@@ -2364,7 +2395,7 @@ function chain(u0,b){
 }
 function updBullets(dt){
   for(const b of G.bullets){
-    if(b.dead) continue;
+    if(b.dead) continue; HITW=b.w||null;
     b.life-=dt; b.t+=dt; b.x+=b.vx*dt; b.y+=b.vy*dt;
     if(b.kind==='k') windupSteer(b,dt);
     else if(b.kind==='O'||b.kind==='E'){ steerNew(b,dt); if(b.dead) continue; }
@@ -2414,9 +2445,9 @@ function updBullets(dt){
     if(b.dead) continue;
     for(const c of G.crates){ if(c.kind!=='mys'||c.state!=='ground') continue; if((c.x-b.x)**2+(c.y-b.y)**2<18*18){ c.hp-=b.dmg; c.flash=0.08; hit(); if(c.hp<=0) breakMystery(c); break; } }
   }
-  G.bullets=G.bullets.filter(b=>!b.dead);
+  HITW=null; G.bullets=G.bullets.filter(b=>!b.dead);
   for(const s of G.shells){
-    s.t+=dt; const p=Math.min(1,s.t/s.T);
+    HITW=s.w||null; s.t+=dt; const p=Math.min(1,s.t/s.T);
     s.x=s.x0+(s.tx-s.x0)*p; s.y=s.y0+(s.ty-s.y0)*p; s.z=30*(1-p)+4*s.H*p*(1-p);
     if(Math.random()<0.5) part({x:s.x,y:s.y,z:s.z,life:.4,size:rr(4,7),col:'#D8CFDD',type:'smoke'});
     if(p>=1){ s.dead=true;
@@ -2424,7 +2455,7 @@ function updBullets(dt){
       else if(s.kind==='disco'){ G.mines.push({kind:'disco',x:s.tx,y:s.ty,team:s.team,owner:s.owner,arm:0,life:6,r:s.splash,id:++UID}); fx('R',s.tx,s.ty,s.splash,'FF8CCF'); fx('S',s.tx,s.ty,20,'C8FF3C',14); sfx('d',s.tx,s.ty); for(const v of G.units) if(!v.dead&&!v.hidden&&v.team!==s.team&&Math.hypot(v.x-s.tx,v.y-s.ty)<s.splash) damage(v,s.dmg,s.owner); }
       else explode(s.tx,s.ty,s.splash,s.dmg,s.team,s.owner); }
   }
-  G.shells=G.shells.filter(s=>!s.dead);
+  HITW=null; G.shells=G.shells.filter(s=>!s.dead);
 }
 function updCrates(dt){
   for(const c of G.crates){
@@ -3003,7 +3034,7 @@ function crystalFire(u,ang,dmg){
 function shellLand(s){
   const team=s.team, owner=s.owner;
   switch(s.kind){
-    case 'gas': G.mines.push({kind:'gas',x:s.tx,y:s.ty,team,owner,arm:0,life:6,r:s.splash,id:++UID}); fx('R',s.tx,s.ty,s.splash,'B8C98A'); sfx('pop',s.tx,s.ty); return true;
+    case 'gas': explode(s.tx,s.ty,s.splash*0.6,s.dmg,team,owner,true); G.mines.push({kind:'gas',x:s.tx,y:s.ty,team,owner,arm:0,life:6,r:s.splash,id:++UID}); fx('R',s.tx,s.ty,s.splash,'B8C98A'); sfx('pop',s.tx,s.ty); return true;
     case 'mud': explode(s.tx,s.ty,s.splash*0.8,s.dmg,team,owner,true); G.mines.push({kind:'mud',x:s.tx,y:s.ty,team,owner,arm:0,life:7,r:s.splash,id:++UID}); return true;
     case 'lava': explode(s.tx,s.ty,s.splash,s.dmg,team,owner); G.mines.push({kind:'lava',x:s.tx,y:s.ty,team,owner,arm:0,life:4.5,r:s.splash*0.85,id:++UID}); return true;
     case 'hail': explode(s.tx,s.ty,s.splash*0.7,s.dmg,team,owner,true);
@@ -3024,7 +3055,7 @@ function updFactionTrap(m,dt){
   for(const u of G.units){ if(u.dead||u.hidden||u.team===m.team||u.structure||u.z>10) continue; if((u.x-m.x)**2+((u.y-m.y)*1.6)**2>m.r*m.r) continue;
     if(m.kind==='mud') u.slow=Math.max(u.slow,0.3);
     else if(m.kind==='lava') u.burn=Math.max(u.burn,0.6);
-    else { u.hp-=4*dt; if(u.hp<=0) kill(u,m.owner); if(u.burn>0){ igniteGas(m); return true; } } }
+    else { u.hp-=9*dt; if(u.hp<=0) kill(u,m.owner); if(u.burn>0){ igniteGas(m); return true; } } }
   if(Math.random()<dt*(m.kind==='gas'?8:4)) part({x:m.x+rr(-m.r,m.r)*0.7,y:m.y+rr(-m.r,m.r)*0.4,z:m.kind==='gas'?rr(4,20):2,vz:m.kind==='gas'?12:30,life:m.kind==='gas'?1.2:.5,size:m.kind==='gas'?rr(14,24):rr(3,6),col:m.kind==='gas'?'#c2d39a':m.kind==='lava'?'#ffb07a':'#8a6a4a',type:m.kind==='gas'?'smoke':'spark'});
   return true;
 }
@@ -5556,7 +5587,7 @@ function showBanner(big,small,col){
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
 }
 function showFind(key,name){
-  const [k0,ksp]=key.split(':'), ch=CHASSIS[k0]; $('findName').textContent=name; $('findDesc').textContent=chDesc(k0,ksp);
+  const [k0,ksp]=key.split(':'), ch=CHASSIS[k0]; $('findName').textContent=name; { const v=vsInfo(k0,ksp||myFaction()); $('findDesc').textContent=chDesc(k0,ksp)+(v&&v.bad.length?` Watch out for: ${v.bad.slice(0,3).map(x=>chName(x,ksp||myFaction())).join(', ')}.`:''); }
   const tp=ch.units.length?chUnits(k0,ksp)[0]:k0==='turret'?'turret':'hero';
   drawPortrait($('findArt'),0,tp,{col:G&&G.teams[myTeam()]?G.teams[myTeam()].col:TEAM_COLS[0],sp:G&&G.teams[myTeam()]?G.teams[myTeam()].sp:'gape'});
   const el=$('find'); el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
@@ -5565,15 +5596,24 @@ function showFind(key,name){
 
 /* ================= SCREENS ================= */
 function mpad(shape){ return `<div class="mpad" aria-hidden="true">${shape.map(n=>`<i class="c${n}">${n>1?n:''}</i>`).join('')}</div>`; }
+function vsHTML(k,sp){ const v=vsInfo(k,sp); if(!v) return ''; const nm=x=>chName(x,sp);
+  return `<small class="vs">${v.good.length?`<em>BEATS</em> ${v.good.map(nm).join(', ')}`:''}${v.bad.length?`<br><em class="bad">BEATEN BY</em> ${v.bad.map(nm).join(', ')}`:''}</small>`; }
 function bookHTML(){
   const me=myFaction(), keys=BOOK_ORDER.map(k=>bookKey(k,me)), others=FACTION_KEYS.filter(f=>f!==me).flatMap(f=>['special','golem'].map(k=>bookKey(k,f)));
   const all=keys.concat(others), n=all.filter(k=>BOOK.has(k)).length;
   const card=(bk,lockNote)=>{ const [k,sp]=bk.split(':'), c=CHASSIS[k], known=BOOK.has(bk);
-    return `<div class="entry ${known?'':'unk'}"><canvas data-k="${bk}" data-known="${known?1:0}" width="200" height="200"></canvas><div class="nm"><b>${known?chName(k,sp):'???'}</b>${known?mpad(c.shape):''}</div><small>${known?chDesc(k,sp):lockNote||c.crates+'. Try shapes you have not built yet.'}</small></div>`; };
+    return `<div class="entry ${known?'':'unk'}"><canvas data-k="${bk}" data-known="${known?1:0}" width="200" height="200"></canvas><div class="nm"><b>${known?chName(k,sp):'???'}</b>${known?mpad(c.shape):''}</div><small>${known?chDesc(k,sp):lockNote||c.crates+'. Try shapes you have not built yet.'}</small>${known?vsHTML(k,sp):''}</div>`; };
   return `<div class="row" style="justify-content:space-between"><h3>STACK BOOK · ${n}/${all.length} BUILDS FOUND</h3><div class="prog"><i style="width:${n/all.length*100}%"></i></div></div>
   <div class="book">${keys.map(k=>card(k)).join('')}</div>
   <h3>OTHER TRIBES' BUILDS · PLAY AS THEM TO UNLOCK</h3>
   <div class="book">${others.map(k=>{ const sp=k.split(':')[1]; return card(k,`${FACTIONS[sp].name} only. ${CHASSIS[k.split(':')[0]].crates}.`); }).join('')}</div>
+  <h3>WHAT BEATS WHAT</h3>
+  <div class="vsrules"><div><b>GUNS</b><small>Rifles, miniguns and spitters shred M8s and choppers but barely scratch armour (half damage).</small></div>
+  <div><b>ROCKETS · CANNONS</b><small>Double damage to tanks, mechs and titans. Cannons can't hit a chopper.</small></div>
+  <div><b>SATCHELS · HAMMERS</b><small>Sappers and brutes wreck armour: three times and more. Can't reach the air.</small></div>
+  <div><b>SNIPERS</b><small>Pierce armour and heavies. Weak against crowds and anything fast.</small></div>
+  <div><b>FLAMES · MORTARS</b><small>Melt M8s in the open. Useless against choppers.</small></div>
+  <div><b>CHOPPER</b><small>Only guns and rockets can touch it. Hunts armour, dies to infantry.</small></div></div>
   <h3>CRATE MATERIALS · MIX THEM INTO ANY BUILD</h3>
   <div class="mats">${Object.values(MATS).map(m=>`<div class="mat"><canvas data-mat="${m.key}" width="88" height="88"></canvas><div><b>${m.name}</b><small>${m.desc}</small></div></div>`).join('')}
   <div class="mat"><canvas data-mat="arms" width="88" height="88"></canvas><div><b>ARMS CRATE</b><small>Small and green. Grab it to crack it open for a random weapon: laser, mines, bouncer, flamer and more. Bots grab them too.</small></div></div>
